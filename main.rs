@@ -1,9 +1,16 @@
 use std::os;
 
-fn main() {
-  match os::getenv("PATH") {
-    Some(val) => println!("This is your path: {}", val),
-    None      => println!("You don't have a PATH set in your environment")
-  }
+fn get_path() -> Option<String> {
+  return os::getenv("PATH");
+}
 
+fn split_path<'a>(path: String) -> Vec<String> {
+  path.as_slice().split(':').map(|x| { x.into_string() }).collect()
+}
+
+fn main() {
+  match get_path().map(split_path) {
+    Some(val) => for p in val.iter() { println!("{}", p); },
+    None => println!("Where is the path?!")
+  }
 }
