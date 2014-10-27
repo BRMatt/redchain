@@ -1,4 +1,6 @@
 use std::os;
+use std::io::fs;
+use std::io;
 
 fn possible_alternatives(project: String, environment: String, paths: Vec<Path>, command: &str) -> Vec<Path> {
   let mut alternatives_with_environment: Vec<Path> = Vec::new();
@@ -22,7 +24,15 @@ fn main() {
   println!("The project prefix is {}", project_prefix);
   println!("The environment is {}", environment_prefix);
 
-  for alternative in possible_alternatives(project_prefix, environment_prefix, executable_paths, "bar").iter() {
-    println!("{}", alternative.display());
+  fn is_executable(path: &Path) -> bool {
+    let executable_flag = io::FilePermission::from_bits_truncate(111);
+
+    fs::stat(path)
+      .map( |stat| { stat.perm.intersects(executable_flag) } )
+      .unwrap_or(false)
   }
+
+  possible_alternatives(project_prefix, environment_prefix, executable_paths, "bar")
+    .iter()
+    .filter(is_executable);
 }
