@@ -24,15 +24,25 @@ fn main() {
   println!("The project prefix is {}", project_prefix);
   println!("The environment is {}", environment_prefix);
 
+  // This is very rudimentary, it doesn't check if a file can be executed by the
+  // user, just that it can be executed by someone.
   fn is_executable(path: &Path) -> bool {
-    let executable_flag = io::FilePermission::from_bits_truncate(111);
+    let executable_flag = io::FilePermission::from_bits_truncate(
+      io::USER_EXECUTE.bits() | io::GROUP_EXECUTE.bits() | io::OTHER_EXECUTE.bits()
+    );
 
     fs::stat(path)
       .map( |stat| { stat.perm.intersects(executable_flag) } )
       .unwrap_or(false)
   }
 
-  possible_alternatives(project_prefix, environment_prefix, executable_paths, "bar")
+  let executables: Vec<Path> = possible_alternatives(project_prefix, environment_prefix, executable_paths, "bar")
     .iter()
-    .filter(is_executable);
+    .filter( |path: &&Path| { is_executable(path.clone()) } )
+    .map( |p| p.clone() )
+    .collect();
+
+  for executable in executables.iter() {
+    println!("{}", executable.display());
+  }
 }
