@@ -1,5 +1,6 @@
 use std::os;
 use std::io::fs::PathExtensions;
+use std::io::Command;
 
 fn possible_alternatives(project: String, environment: String, paths: Vec<Path>, command: &str) -> Vec<Path> {
   let mut alternatives_with_environment: Vec<Path> = Vec::new();
@@ -30,6 +31,11 @@ fn main() {
     .collect();
 
   for executable in executables.iter() {
-    println!("{}", executable.display());
+    let process = Command::new(executable);
+
+    match process.spawn() {
+      Ok(_) => println!("Spawned!"),
+      Err(e) => println!("Could not spawn process: {}", e)
+    }
   }
 }
