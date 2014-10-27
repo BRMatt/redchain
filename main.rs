@@ -1,6 +1,5 @@
 use std::os;
-use std::io::fs;
-use std::io;
+use std::io::fs::PathExtensions;
 
 fn possible_alternatives(project: String, environment: String, paths: Vec<Path>, command: &str) -> Vec<Path> {
   let mut alternatives_with_environment: Vec<Path> = Vec::new();
@@ -24,21 +23,9 @@ fn main() {
   println!("The project prefix is {}", project_prefix);
   println!("The environment is {}", environment_prefix);
 
-  // This is very rudimentary, it doesn't check if a file can be executed by the
-  // user, just that it can be executed by someone.
-  fn is_executable(path: &Path) -> bool {
-    let executable_flag = io::FilePermission::from_bits_truncate(
-      io::USER_EXECUTE.bits() | io::GROUP_EXECUTE.bits() | io::OTHER_EXECUTE.bits()
-    );
-
-    fs::stat(path)
-      .map( |stat| { stat.perm.intersects(executable_flag) } )
-      .unwrap_or(false)
-  }
-
   let executables: Vec<Path> = possible_alternatives(project_prefix, environment_prefix, executable_paths, "bar")
     .iter()
-    .filter( |path: &&Path| { is_executable(path.clone()) } )
+    .filter( |path: &&Path| { (**path).is_file() } )
     .map( |p| p.clone() )
     .collect();
 
